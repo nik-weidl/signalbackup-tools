@@ -51,7 +51,7 @@
 #include <ranges>
 #endif
 
-#if defined WIN32 || MINGW
+#if defined(_WIN32) || defined(__MINGW64__)
 // Windows has all sorts of issues with 'long' paths. While this tool can (probably)
 // work around that (see WIN_LONGPATH in common_filesystem), it does not help much
 // as many Windows programs can then still not open the resulting files with their
@@ -60,16 +60,25 @@
 // In Signal currently group titles are limited to 32 characters, while contact names
 // are max 53 (26 first name + space + 26 last name) (historically, longer group
 // titles have been possible).
-// maybe this needs to be done smarter, making sure to only truncate at character
-// boundaries (not in the middle of multibyte ones...
-//#define MAXFILELENGTH 54
-//#define WIN_LIMIT_FILENAME_LENGTH(str) if (str.size() > MAXFILELENGTH) [[unlikely]]  str.resize(MAXFILELENGTH);
-#define WIN_LIMIT_FILENAME_LENGTH(str)
+#define MAXFILELENGTH 54
+#define WIN_LIMIT_FILENAME_LENGTH(str)                                                                 \
+  if (str.size() > MAXFILELENGTH) [[unlikely]]                                                         \
+  {                                                                                                    \
+    size_t idx = 0;                                                                                    \
+    while (idx < str.size())                                                                           \
+    {                                                                                                  \
+      size_t charlen = static_cast<size_t>(bytesToUtf8CharSize(str, static_cast<unsigned int>(idx))); \
+      if (idx + charlen > MAXFILELENGTH)                                                               \
+        break;                                                                                         \
+      idx += charlen;                                                                                  \
+    }                                                                                                  \
+    str.resize(idx);                                                                                   \
+  }
 #else
 #define WIN_LIMIT_FILENAME_LENGTH(str)
 #endif
 
-#if defined WIN32 || MINGW
+#if defined(_WIN32) || defined(__MINGW64__)
 #define WIN_CHECK_PATH_LENGTH(str) if (int pl = bepaald::abs_path_length(str); pl >= 260) Logger::warnOnce("Path length is " + bepaald::toString(pl) + ". This may be more than the allowed maximum path length on your platform. If you run into problems, use the option `--compactfilenames' to shorten the filenames this tool writes.", false, STRLEN("Path length is "));
 #else
 #define WIN_CHECK_PATH_LENGTH(str)

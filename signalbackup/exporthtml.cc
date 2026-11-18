@@ -447,21 +447,25 @@ bool SignalBackup::exportHtml(std::string const &directory, std::vector<long lon
         return false;
       }
     }
-    else if (!bepaald::createDir(bepaald::concat(directory, "/", threaddir))) // try to create it
+    else
     {
-      Logger::error("Failed to create directory `", directory, "/", threaddir, "'",
-                    " (errno: ", std::strerror(errno), ")"); // note: errno is not required to be set by std
-      // temporary !!
+      WIN_CHECK_PATH_LENGTH(bepaald::concat(directory, "/", threaddir));
+      if (!bepaald::createDir(bepaald::concat(directory, "/", threaddir))) // try to create it
       {
-        std::error_code ec;
-        std::filesystem::space_info const si = std::filesystem::space(directory, ec);
-        if (!ec)
+        Logger::error("Failed to create directory `", directory, "/", threaddir, "'",
+                      " (errno: ", std::strerror(errno), ")"); // note: errno is not required to be set by std
+        // temporary !!
         {
-          Logger::message("Available: ", static_cast<std::intmax_t>(si.available));
-          Logger::message(" Filesize: ", d_fd->total());
+          std::error_code ec;
+          std::filesystem::space_info const si = std::filesystem::space(directory, ec);
+          if (!ec)
+          {
+            Logger::message("Available: ", static_cast<std::intmax_t>(si.available));
+            Logger::message(" Filesize: ", d_fd->total());
+          }
         }
+        return false;
       }
-      return false;
     }
 
     // now append messages to html

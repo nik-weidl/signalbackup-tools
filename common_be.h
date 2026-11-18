@@ -285,6 +285,10 @@ inline constexpr int bepaald::numDigits(long long int num)
 
 inline std::string bepaald::toDateString(std::time_t epoch, std::string_view format)
 {
+  std::tm *lt = std::localtime(&epoch);
+  if (!lt) [[unlikely]]
+    return std::string();
+
   int size = 32;
   char *timestr = new char[size];
   size_t chars;
@@ -292,7 +296,7 @@ inline std::string bepaald::toDateString(std::time_t epoch, std::string_view for
   // to know how large a buffer must be (considering localized fmt strings), so we check
   // and realloc. In practice, ~28 seems to be large enough for all formats this tool
   // uses.
-  while ((chars = strftime(timestr, size, format.data(), std::localtime(&epoch))) == 0)
+  while ((chars = strftime(timestr, size, format.data(), lt)) == 0)
   {
     delete[] timestr;
     size += size;

@@ -667,13 +667,23 @@ int main(int argc, char *argv[])
       sb->runQuery(arg.runprettysqlquery()[i], "pretty");
 
   if (!arg.exporthtml().empty())
-    if (!sb->exportHtml(arg.exporthtml(), limittothreads, arg.limittodates(), arg.split_by(), (arg.split_bool() ? arg.split() : -1),
-                        arg.setorigin(), arg.setselfid(), arg.includecalllog(), arg.searchpage(), arg.stickerpacks(), arg.migratedb(),
-                        arg.overwrite(), arg.append(), arg.light(), arg.themeswitching(), arg.addexportdetails(), arg.includeblockedlist(),
-                        arg.includefullcontactlist(), arg.includesettings(), arg.includereceipts(), arg.originalfilenames(),
-                        arg.linkify(), arg.chatfolders(), arg.compactfilenames(), arg.htmlpagemenu(), arg.aggressivefilenamesanitizing(),
-                        arg.excludeexpiring(), arg.htmlfocusend(), arg.htmlignoremediatypes()))
+  {
+    try
+    {
+      if (!sb->exportHtml(arg.exporthtml(), limittothreads, arg.limittodates(), arg.split_by(), (arg.split_bool() ? arg.split() : -1),
+                          arg.setorigin(), arg.setselfid(), arg.includecalllog(), arg.searchpage(), arg.stickerpacks(), arg.migratedb(),
+                          arg.overwrite(), arg.append(), arg.light(), arg.themeswitching(), arg.addexportdetails(), arg.includeblockedlist(),
+                          arg.includefullcontactlist(), arg.includesettings(), arg.includereceipts(), arg.originalfilenames(),
+                          arg.linkify(), arg.chatfolders(), arg.compactfilenames(), arg.htmlpagemenu(), arg.aggressivefilenamesanitizing(),
+                          arg.excludeexpiring(), arg.htmlfocusend(), arg.htmlignoremediatypes()))
+        return 1;
+    }
+    catch (std::exception const &e)
+    {
+      Logger::error("Exception during HTML export: ", e.what());
       return 1;
+    }
+  }
 
   if (!arg.exporttxt().empty())
     if (!sb->exportTxt(arg.exporttxt(), limittothreads, arg.limittodates(), arg.setselfid(),
